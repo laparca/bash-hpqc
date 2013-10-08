@@ -1,0 +1,48 @@
+USER=srs003es
+PASS=zx65zx65
+BASE_URL='http://eshpqcap:8080'
+COOKIES=$(mktemp /tmp/bash_hpqc_cookie_jar.XXXXXXXXXX)
+HEAD=$(mktemp /tmp/bash_hpqc_heads.XXXXXXXXXX)
+CACHE=./cache
+
+[ ! -e ${CACHE} ] && mkdir ${CACHE}
+[ ! -d ${CACHE} ] && echo "${CACHE} no es un directorio" && exit 1
+
+rm ${CACHE}/*
+# AUTHENTICATE
+curl --basic -D ${HEAD} --cookie-jar ${COOKIES} -u "${USER}:${PASS}" "${BASE_URL}/qcbin/authentication-point/authenticate"
+
+# LIST OF ENTITIES
+curl -D ${HEAD} --cookie ${COOKIES} --cookie-jar ${COOKIES} "${BASE_URL}/qcbin/rest/domains/DEFAULT/projects/DIA_N2A/customization/entities?required=true" | xsltproc entities.xsl - | sed -e '1d' > ${CACHE}/entities.csv
+
+OLD_IFS=$IFS
+# GETS THE FIELDS OF EACH ENTITIE
+while read line; do
+	IFS='|'
+	tokens=($line)
+
+	if [ -n "${tokens[0]}" ]; then
+		ENTITIE=${CACHE}/entitie_${tokens[0]}_fields.csv
+		
+		curl -D ${HEAD} --cookie ${COOKIES} --cookie-jar ${COOKIES} "${BASE_URL}/qcbin/rest/domains/DEFAULT/projects/DIA_N2A/customization/entities/${tokens[0]}/fields?required=true" | xsltproc entitie.xsl - | sed -e '1d' > ${ENTITIE}
+	fi
+
+	# GETS THE LISTS USED
+	while read entitie_line; do
+		IFS='|'
+		entitie_tokens=($entitie_line)
+		if [ "${entitie_tokens[7]}" = "LookupList" ]; then
+			LISTS="$LISTS ${entitie_tokens[15]}"
+		fi
+	done < ${ENTITIE}
+done < ${CACHE}/entities.csv
+
+IFS=$OLD_IFS
+UNIQ_LISTS="$(echo ${LISTS} | tr ' ' '\n' | sort -g | uniq)"
+for list in ${UNIQ_LISTS}; do
+	LIST="${CACHE}/list_${list}.csv"
+	curl -D ${HEAD} --cookie ${COOKIES} --cookie-jar ${COOKIES} "${BASE_URL}/qcbin/rest/domains/DEFAULT/projects/DIA_N2A/customization/lists?id=${list}" | xsltproc list.xsl - | sed -e '1d' > ${LIST}
+
+done
+
+rm ${COOKIES}

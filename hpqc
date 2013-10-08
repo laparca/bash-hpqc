@@ -1,0 +1,10 @@
+#!/bin/bash
+
+case "$1" in
+	build-cache)
+		hpqc-build-cache
+		;;
+	*)
+		echo "$0 build-cache"
+		;;
+esac
