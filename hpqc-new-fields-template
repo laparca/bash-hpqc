@@ -1,0 +1,60 @@
+#!/bin/bash
+
+CONFIG_PATHS="~/.hpqc/hpqc.config /etc/hpqc/hpqc.config $(dirname $0)/hpqc.config ./hpqc.config"
+for file in ${CONFIG_PATHS}; do
+	[ -f ${file} ] && . $file
+done
+
+OLD_IFS=${IFS}
+
+function create_view() {
+	cat <<END
+<?xml version="1.0"?>
+
+<!-- Trasforma las descripciones de entidades -->
+<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+	<xsl:template match="/">
+		<xsl:for-each select="Entities/Entity">
+END
+
+	echo -n "			<xsl:value-of select='Fields/Field[@Name=$1]/Value'/>"
+	shift
+
+	while [ -n "$1" ]; do
+		echo -n "|<xsl:value-of select='Fields/Field[@Name=$1]/Value'/>"
+		shift
+	done
+
+	cat <<END
+<xsl:text>
+</xsl:text>
+		</xsl:for-each>
+	</xsl:template>
+</xsl:stylesheet>
+END
+}
+
+# Load defects fields
+while read field; do
+	IFS='|'
+	if [ -n "$field" ]; then
+		tokens=($field)
+		if [ "${tokens[5]}" = "true" ]; then
+			REQUIRED="*"
+		else
+			REQUIRED=
+		fi
+
+		FIELD_LIST="${FIELD_LIST} ${tokens[1]} '${REQUIRED}${tokens[2]}' off"
+	fi
+done < ${CACHE}/entity_defect_fields.csv
+
+IFS=${OLD_IFS}
+
+SELECTED_FIELDS=$(echo ${FIELD_LIST} | xargs dialog --stdout --checklist "Seleccion lista campos" 0 0 0)
+if [ ${PIPESTATUS[1]} ]; then
+	NAME=$(dialog --stdout --title "Nombre vista" --inputbox "Nombre de la vista de campos de defecto" 0 0)
+	[ ! $? ] && exit 0
+fi
+
+create_view ${SELECTED_FIELDS} > ${NAME}.view

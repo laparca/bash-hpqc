@@ -1,0 +1,38 @@
+#!/bin/bash
+USER=srs003es
+PASS=zx65zx65
+BASE_URL='http://eshpqcap:8080'
+COOKIES=$(mktemp /tmp/bash_hpqc_cookie_jar.XXXXXXXXXX)
+HEAD=$(mktemp /tmp/bash_hpqc_heads.XXXXXXXXXX)
+CACHE=./cache
+
+[ ! -d ${CACHE} ] && echo "${CACHE} no es un directorio" && exit 1
+
+# AUTHENTICATE
+curl --basic -D ${HEAD} --cookie-jar ${COOKIES} -u "${USER}:${PASS}" "${BASE_URL}/qcbin/authentication-point/authenticate"
+
+while [ -n "$1" ]; do
+	if [ -f "$1" ]; then
+		QUERY='?query={'$(<"$1")'}'
+	elif [ -f "$1.view" ]; then
+		VIEW="$1.view"
+	else
+		QUERY='?query={'$1'}'
+	fi
+
+	shift
+done
+
+# LIST OF ENTITIES
+TMP_FILE=$(mktemp /tmp/defects.XXXXXXXXXX)
+curl -D ${HEAD} --cookie ${COOKIES} --cookie-jar ${COOKIES} -g "${BASE_URL}/qcbin/rest/domains/DEFAULT/projects/DIA_N2A/defects${QUERY}" > ${TMP_FILE}
+
+if [ -n "$VIEW" ]; then
+	xsltproc "$VIEW" "${TMP_FILE}"
+else
+	cat "${TMP_FILE}"
+fi
+
+rm ${TMP_FILE}
+
+rm ${COOKIES}

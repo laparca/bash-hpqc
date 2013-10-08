@@ -1,10 +1,13 @@
 #!/bin/bash
 
-case "$1" in
-	build-cache)
-		hpqc-build-cache
-		;;
-	*)
-		echo "$0 build-cache"
-		;;
-esac
+BIN_PATH=$(dirname $0)
+
+PLUGIN="$1"
+shift
+
+if [ ! -x "${BIN_PATH}/hpqc-${PLUGIN}" ]; then
+	echo "Debe asignar un plugin adecuado"
+	exit 1
+fi
+
+${BIN_PATH}/hpqc-${PLUGIN} "$@"
