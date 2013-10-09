@@ -2,7 +2,8 @@
 # Cargamos la configuracion
 CONFIG_PATHS="/etc/hpqc/hpqc.config ~/.hpqc/hpqc.config ./hpqc.config"
 for file in ${CONFIG_PATHS}; do
-	[ -f ${file} ] && . $file
+	expanded_file=$(bash -c "echo $file")
+	[ -f ${expanded_file} ] && . $expanded_file
 done
 
 PLUGIN="$1"
