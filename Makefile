@@ -1,3 +1,6 @@
+VERSION=$(shell grep Version hpqc.spec | sed -n -e 's/^Version:[^0-9]*\(.*\)$$/\1/p')
+RELEASE=$(shell grep Release hpqc.spec | sed -n -e 's/^Release:[^0-9]*\(.*\)$$/\1/p')
+
 all:
 	[ -d hpqc ] && rm -r hpqc || true
 	[ -d rpmbuild ] && rm -r rpmbuild || true 
@@ -8,5 +11,5 @@ all:
 	tar cvfz rpmbuild/SOURCES/hpqc.tgz hpqc
 	rm -rf hpqc
 	rpmbuild --define "_topdir $(shell pwd)/rpmbuild" -ba rpmbuild/SPECS/hpqc.spec
-	cp rpmbuild/RPMS/i386/hpqc-1.0.0-0003.i386.rpm .
+	cp rpmbuild/RPMS/i386/hpqc-$(VERSION)-$(RELEASE).i386.rpm .
 	rm -r rpmbuild
