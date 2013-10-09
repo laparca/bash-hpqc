@@ -1,0 +1,12 @@
+#!/bin/bash
+
+for path in ${PLUGIN_PATH}; do
+	expanded_path=$(bash -c "echo $path")
+	pushd "$expanded_path" 2> /dev/null > /dev/null
+	if [ $? = 0 ]; then
+		for i in hpqc-*; do
+			echo ${i/hpqc-/}
+		done
+		popd > /dev/null
+	fi
+done
