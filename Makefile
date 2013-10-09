@@ -8,5 +8,5 @@ all:
 	tar cvfz rpmbuild/SOURCES/hpqc.tgz hpqc
 	rm -rf hpqc
 	rpmbuild --define "_topdir $(shell pwd)/rpmbuild" -ba rpmbuild/SPECS/hpqc.spec
-	cp rpmbuild/RPMS/i386/hpqc-1.0.0-0001.i386.rpm .
+	cp rpmbuild/RPMS/i386/hpqc-1.0.0-0002.i386.rpm .
 	rm -r rpmbuild
