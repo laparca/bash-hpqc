@@ -5,15 +5,8 @@ for file in ${CONFIG_PATHS}; do
 	[ -f ${file} ] && . $file
 done
 
-BIN_PATH=$(dirname $0)
-
 PLUGIN="$1"
 shift
-
-if [ ! -x "${BIN_PATH}/hpqc-${PLUGIN}" ]; then
-	echo "Debe asignar un plugin adecuado"
-	exit 1
-fi
 
 # Look for views in
 function getView
@@ -42,4 +35,23 @@ function getFilter
 	echo ${RESULT}
 }
 
-. ${BIN_PATH}/hpqc-${PLUGIN} "$@"
+function getPlugin
+{
+	PLUGIN=$1
+	for path in ${PLUGIN_PATH}; do
+		expanded_path=$(bash -c "echo $path")
+		if [ -f "${expanded_path}/hpqc-${PLUGIN}" ]; then
+			RESULT="${expanded_path}/hpqc-${FILTER}"
+		fi
+	done
+
+	echo ${RESULT}
+}
+
+plugin=$(getPlugin ${PLUGIN})
+if [ -z "${plugin}" ]; then
+	echo "Debe asignar un plugin adecuado"
+	exit 1
+fi
+
+. ${plugin} "$@"
