@@ -1,0 +1,12 @@
+#!/bin/bash
+
+for path in ${VIEW_PATH}; do
+	expanded_path=$(bash -c "echo $path")
+	pushd "$expanded_path" 2> /dev/null > /dev/null
+	if [ $? = 0 ]; then
+		for i in *.view; do
+			echo ${i/.view/}
+		done
+		popd > /dev/null
+	fi
+done
