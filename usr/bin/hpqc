@@ -41,7 +41,7 @@ function getPlugin
 	for path in ${PLUGIN_PATH}; do
 		expanded_path=$(bash -c "echo $path")
 		if [ -f "${expanded_path}/hpqc-${PLUGIN}" ]; then
-			RESULT="${expanded_path}/hpqc-${FILTER}"
+			RESULT="${expanded_path}/hpqc-${PLUGIN}"
 		fi
 	done
 
