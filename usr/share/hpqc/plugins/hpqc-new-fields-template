@@ -1,10 +1,4 @@
 #!/bin/bash
-
-CONFIG_PATHS="~/.hpqc/hpqc.config /etc/hpqc/hpqc.config $(dirname $0)/hpqc.config ./hpqc.config"
-for file in ${CONFIG_PATHS}; do
-	[ -f ${file} ] && . $file
-done
-
 OLD_IFS=${IFS}
 
 function create_view() {
@@ -52,9 +46,10 @@ done < ${CACHE}/entity_defect_fields.csv
 IFS=${OLD_IFS}
 
 SELECTED_FIELDS=$(echo ${FIELD_LIST} | xargs dialog --stdout --checklist "Seleccion lista campos" 0 0 0)
-if [ ${PIPESTATUS[1]} ]; then
+if [ "${PIPESTATUS[1]}" != 0 ]; then
 	NAME=$(dialog --stdout --title "Nombre vista" --inputbox "Nombre de la vista de campos de defecto" 0 0)
-	[ ! $? ] && exit 0
+	[ "$?" != 0 ] && exit 0
 fi
 
-create_view ${SELECTED_FIELDS} > ${NAME}.view
+[ ! -d ~/.hpqc/views ] && mkdir -p ~/.hpqc/views
+create_view ${SELECTED_FIELDS} > ~/.hpqc/views/${NAME}.view

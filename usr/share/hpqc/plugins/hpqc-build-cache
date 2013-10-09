@@ -1,7 +1,5 @@
 #!/bin/bash
-. hpqc.config
-
-[ ! -e ${CACHE} ] && mkdir ${CACHE}
+[ ! -e ${CACHE} ] && mkdir -p ${CACHE}
 [ ! -d ${CACHE} ] && echo "${CACHE} no es un directorio" && exit 1
 
 rm ${CACHE}/*
@@ -9,7 +7,7 @@ rm ${CACHE}/*
 curl --basic -D ${HEAD} --cookie-jar ${COOKIES} -u "${USER}:${PASS}" "${BASE_URL}/qcbin/authentication-point/authenticate"
 
 # LIST OF ENTITIES
-curl -D ${HEAD} --cookie ${COOKIES} --cookie-jar ${COOKIES} "${BASE_URL}/qcbin/rest/domains/DEFAULT/projects/DIA_N2A/customization/entities" | xsltproc entities.xsl - | sed -e '1d' > ${CACHE}/entities.csv
+curl -D ${HEAD} --cookie ${COOKIES} --cookie-jar ${COOKIES} "${BASE_URL}/qcbin/rest/domains/DEFAULT/projects/DIA_N2A/customization/entities" | xsltproc $(getFilter entities) - | sed -e '1d' > ${CACHE}/entities.csv
 
 OLD_IFS=$IFS
 # GETS THE FIELDS OF EACH ENTITIE
@@ -20,8 +18,7 @@ while read line; do
 	if [ -n "${tokens[0]}" ]; then
 		ENTITIE=${CACHE}/entity_${tokens[0]}_fields.csv
 		
-		curl -D ${HEAD} --cookie ${COOKIES} --cookie-jar ${COOKIES} "${BASE_URL}/qcbin/rest/domains/DEFAULT/projects/DIA_N2A/customization/entities/${tokens[0]}/fields" | xsltproc entity.xsl - | sed -e '1d' > ${ENTITIE}
-		#curl -D ${HEAD} --cookie ${COOKIES} --cookie-jar ${COOKIES} "${BASE_URL}/qcbin/rest/domains/DEFAULT/projects/DIA_N2A/customization/entities/${tokens[0]}/fields?required=true" | xsltproc entity.xsl - | sed -e '1d' > ${ENTITIE/.csv/_required.csv}
+		curl -D ${HEAD} --cookie ${COOKIES} --cookie-jar ${COOKIES} "${BASE_URL}/qcbin/rest/domains/DEFAULT/projects/DIA_N2A/customization/entities/${tokens[0]}/fields" | xsltproc $(getFilter entity) - | sed -e '1d' > ${ENTITIE}
 	fi
 
 	# GETS THE LISTS USED
@@ -38,11 +35,11 @@ IFS=$OLD_IFS
 UNIQ_LISTS="$(echo ${LISTS} | tr ' ' '\n' | sort -g | uniq)"
 for list in ${UNIQ_LISTS}; do
 	LIST="${CACHE}/list_${list}.csv"
-	curl -D ${HEAD} --cookie ${COOKIES} --cookie-jar ${COOKIES} "${BASE_URL}/qcbin/rest/domains/DEFAULT/projects/DIA_N2A/customization/lists?id=${list}" | xsltproc list.xsl - | sed -e '1d' > ${LIST}
+	curl -D ${HEAD} --cookie ${COOKIES} --cookie-jar ${COOKIES} "${BASE_URL}/qcbin/rest/domains/DEFAULT/projects/DIA_N2A/customization/lists?id=${list}" | xsltproc $(getFilter list) - | sed -e '1d' > ${LIST}
 
 done
 
 # GETS RELEASES
-curl -D ${HEAD} --cookie ${COOKIES} --cookie-jar ${COOKIES} "${BASE_URL}/qcbin/rest/domains/DEFAULT/projects/DIA_N2A/releases" | xsltproc releases.xsl - | sed -e '1d' > ${CACHE}/releases.csv
+curl -D ${HEAD} --cookie ${COOKIES} --cookie-jar ${COOKIES} "${BASE_URL}/qcbin/rest/domains/DEFAULT/projects/DIA_N2A/releases" | xsltproc $(getFilter releases) - | sed -e '1d' > ${CACHE}/releases.csv
 
 rm ${COOKIES}

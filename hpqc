@@ -1,4 +1,9 @@
 #!/bin/bash
+# Cargamos la configuracion
+CONFIG_PATHS="/etc/hpqc/hpqc.config ~/.hpqc/hpqc.config ./hpqc.config"
+for file in ${CONFIG_PATHS}; do
+	[ -f ${file} ] && . $file
+done
 
 BIN_PATH=$(dirname $0)
 
@@ -10,4 +15,31 @@ if [ ! -x "${BIN_PATH}/hpqc-${PLUGIN}" ]; then
 	exit 1
 fi
 
-${BIN_PATH}/hpqc-${PLUGIN} "$@"
+# Look for views in
+function getView
+{
+	VIEW=$1
+	for path in ${VIEW_PATH}; do
+		expanded_path=$(bash -c "echo $path")
+		if [ -f "${expanded_path}/${VIEW}.view" ]; then
+			RESULT="${expanded_path}/${VIEW}.view"
+		fi
+	done
+
+	echo ${RESULT}
+}
+
+function getFilter
+{
+	FILTER=$1
+	for path in ${FILTER_PATH}; do
+		expanded_path=$(bash -c "echo $path")
+		if [ -f "${expanded_path}/${FILTER}.xsl" ]; then
+			RESULT="${expanded_path}/${FILTER}.xsl"
+		fi
+	done
+
+	echo ${RESULT}
+}
+
+. ${BIN_PATH}/hpqc-${PLUGIN} "$@"
