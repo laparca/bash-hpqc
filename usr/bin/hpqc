@@ -23,6 +23,19 @@ function getView
 	echo ${RESULT}
 }
 
+function getSearch
+{
+	SEARCH=$1
+	for path in ${SEARCH_PATH}; do
+		expanded_path=$(bash -c "echo $path")
+		if [ -f "${expanded_path}/${SEARCH}.search" ]; then
+			RESULT="${expanded_path}/${SEARCH}.search"
+		fi
+	done
+
+	echo ${RESULT}
+}
+
 function getFilter
 {
 	FILTER=$1

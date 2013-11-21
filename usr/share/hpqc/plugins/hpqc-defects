@@ -6,10 +6,14 @@ curl --basic -D ${HEAD} --cookie-jar ${COOKIES} -u "${USER}:${PASS}" "${BASE_URL
 
 while [ -n "$1" ]; do
 	view=$(getView "$1")
+	search=$(getSearch "$1")
+
 	if [ -f "$1" ]; then
 		QUERY='&query={'$(<"$1")'}'
 	elif [ -n "${view}" ]; then
 		VIEW="${view}"
+	elif [ -n "${search}" ]; then
+		QUERY='&query={'$(<"${search}")'}'
 	else
 		QUERY='&query={'"$1"'}'
 	fi
