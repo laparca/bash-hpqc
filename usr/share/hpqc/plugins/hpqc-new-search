@@ -1,0 +1,195 @@
+#!/bin/bash
+OLD_IFS=${IFS}
+#set -x
+
+function get_column() {
+	local LINE="$1"
+	local COL="$2"
+	local _OLD_IFS="${IFS}"
+	IFS="|"
+	local tokens=(${LINE})
+	echo ${tokens[$COL]}
+	IFS="${_OLD_IFS}"
+}
+
+# Devuelve el tipo de campo
+function field_type() {
+	local ENTITY="$1"
+	local FIELD="$2"
+
+	line=$(grep ${FIELD} ${CACHE}/entity_${ENTITY}_fields.csv)
+	get_column "${line}" 7
+}
+
+function field_name() {
+	local ENTITY="$1"
+	local FIELD="$2"
+
+	line=$(grep ${FIELD} ${CACHE}/entity_${ENTITY}_fields.csv)
+	get_column "${line}" 2
+}
+
+function field_list_id() {
+	local ENTITY="$1"
+	local FIELD="$2"
+
+	line=$(grep ${FIELD} ${CACHE}/entity_${ENTITY}_fields.csv)
+	get_column "${line}" 15
+}
+
+function list_values() {
+	local LIST_ID="$1"
+	cat ${CACHE}/list_${LIST_ID}.csv
+}
+
+function cycle_list() {
+	while read line; do
+		[ ! -z "${line}" ] && echo "$(get_column "${line}" 3)|$(get_column "${line}" 2)"
+	done < ${CACHE}/release-cycles.csv | tr "'" "."
+}
+
+function release_plan_list() {
+	cut -d'|' -f 1 ${CACHE}/releases.csv | sort | uniq
+}
+
+function release_list() {
+	PLAN=$1
+	grep "^${PLAN}" ${CACHE}/releases.csv | while read line; do
+		echo "'$(get_column "${line}" 3)' '$(get_column "${line}" 2)'"
+	done
+}
+
+# Load defects fields
+FIELDS_FROM=${CACHE}/entity_defect_fields.csv
+while read field; do
+	IFS='|'
+	if [ -n "$field" ]; then
+		tokens=($field)
+		#if [ "${tokens[5]}" = "true" ]; then
+		#	REQUIRED="*"
+		#else
+		#	REQUIRED=
+		#fi
+
+		if [ "${tokens[12]}" = "true" ]; then
+			FIELD_LIST="${FIELD_LIST} ${tokens[1]} '${REQUIRED}${tokens[2]}' off"
+		fi
+	fi
+done < ${FIELDS_FROM}
+
+IFS=${OLD_IFS}
+
+if [ -z "${FIELD_LIST}" ]; then
+	echo "No hay elementos"
+	exit 1
+fi
+
+# Mostramos los campos por lo que realizar la busqueda
+SELECTED_FIELDS=$(echo ${FIELD_LIST} | xargs dialog --stdout --checklist "Seleccion lista campos" 0 0 0)
+
+FINAL_QUERY=""
+# Hay que solicitar la informacion de busqueda de cada campo
+for field in ${SELECTED_FIELDS}; do
+	field_name=$(echo ${field} | tr -d '"')
+	TYPE=$(field_type "defect" ${field_name})
+	LABEL=$(field_name "defect" ${field_name})
+	LEGAL_VALUES=""
+	echo "typeof(${field}) = ${TYPE}"
+
+	SALIR=0
+	QUERY=""
+	while [ ${SALIR} = 0 ]; do
+		QUERY="$(dialog --stdout --title "Filtro para ${LABEL} (${TYPE})" --help-button --help-label "Valores permitidos" --inputbox "Consulta" 8 70 "${QUERY}")"
+		case $? in
+			0) # OK
+				if [ -n "${QUERY}" ]; then
+					if [ -n "${FINAL_QUERY}" ]; then
+						FINAL_QUERY="${FINAL_QUERY}; "
+					fi
+					FINAL_QUERY="${FINAL_QUERY}${field_name}[${QUERY}]"
+				fi
+				SALIR=1
+				;;
+			1) # CANCELAR
+				SALIR=1
+				;;
+			2) # Mostrar ayuda
+				# AND, OR, NOT
+				# > < <> <= =>
+				case ${TYPE} in
+					Date)
+						dialog --stdout --title "Ayuda para campo ${TYPE}" --msgbox "Puede introducir cualquier fecha con formato AAAA-MM-DD.\nPuede usar AND, OR, NOT, <, >, <>, <= y >=." 6 70
+						;;
+					DateTime)
+						dialog --stdout --title "Ayuda para campo ${TYPE}" --msgbox "Puede introducir cualquier fecha con formato AAAA-MM-DD HH:MM:SS.\nPuede usar AND, OR, NOT, <, >, <>, <= y >=." 6 70
+						;;
+					Reference)
+						case ${field_name} in
+							*-rel)
+								PLANS=$(release_plan_list | while read plan; do
+									[ -n "${plan}" ] && echo -n " '${plan}' '' off"
+								done | xargs dialog --stdout --title "De que planes?" --separate-output --checklist "Planes" 0 0 0)
+				
+								ACEPTADOS=$(for plan in ${PLANS};do
+									release_list ${plan} | while read release; do
+										echo -n "${release} off "
+									done | xargs dialog --stdout --title "Release para el plan ${plan}" --separate-output --checklist "Releases" 0 0 0
+								done)
+
+								[ -n "${QUERY}" ] && QUERY="${QUERY} OR "
+								QUERY="${QUERY}$(echo "${ACEPTADOS}" | tr '\n' ' ' | sed 's/ *$//' | sed 's$ $ OR $g')"
+								;;
+							*-rcyc)
+								LIST_ID=$(field_list_id "defect" "${field_name}")
+								
+								ACEPTADOS=$(IFS='|'; cycle_list | while read value; do
+									tokens=(${value})
+									echo -n " '${tokens[0]}' '${tokens[1]}' off"
+								done | xargs dialog --stdout --title "Campos validos para ${LABEL}" --separate-output --checklist "Valores" 0 0 0)
+								
+								[ -n "${QUERY}" ] && QUERY="${QUERY} OR "
+								QUERY="${QUERY}$(echo "${ACEPTADOS}" | tr '\n' ' ' | sed 's/ *$//' | sed 's$ $ OR $g')"
+								;;
+						esac
+						;;
+					String | Memo)
+						dialog --stdout --title "Ayuda para campo ${TYPE}" --msgbox "Puede introducir cualquier texto.\nPuede usar el '*' como comodin.\nEn caso de cadenas con espacios puede usar comillas.\nPuede usar AND, OR, NOT, <, >, <>, <= y >=." 8 70
+						;;
+					Number)
+						dialog --stdout --title "Ayuda para campo ${TYPE}" --msgbox "Puede introducir cualquier numero.\nPuede usar AND, OR, NOT, <, >, <>, <= y >=." 6 70
+						;;
+					LookupList)
+						LIST_ID=$(field_list_id "defect" ${field_name})
+						if [ -z "$(list_value ${LIST_ID})" ]; then
+							dialog --stdout --title "Error" --msgbox "No hay informacion sobre la lista seleccionada" 6 70
+						else
+							ACEPTADOS=$(list_values ${LIST_ID} | while read value; do 
+								[ ! -z "${value}" ] && echo -n " '${value}' '' off"
+							done | xargs dialog --stdout --title "Campos validos para ${LABEL}" --checklist "Valores" 0 0 0)
+							[ -n "${QUERY}" ] && QUERY="${QUERY} OR "
+							QUERY="${QUERY}$(echo "${ACEPTADOS}" | sed 's$ $ OR $g')"
+						fi
+						;;
+					UsersList)
+						dialog --stdout --title "Ayuda para campo ${TYPE}" --msgbox "Puede introducir identificadores de usuario.\nPuede usar AND, OR, NOT, <, >, <>, <= y >=." 6 70
+						;;
+					*)
+						echo "no reconocido"
+						;;
+				esac
+				;;
+		esac
+	done
+done
+
+echo "${FINAL_QUERY}"
+
+# Guardamos la busqueda
+if [ "${PIPESTATUS[1]}" != 0 ]; then
+	NAME=$(dialog --stdout --title "Nombre de la busqueda" --inputbox "Nombre de la busqueda de incidencias" 0 0)
+	[ "$?" != 0 ] && exit 0
+fi
+
+[ ! -d ~/.hpqc/searchs ] && mkdir -p ~/.hpqc/searchs
+echo "${FINAL_QUERY}" > ~/hpqc/searchs/"${NAME}"
+
