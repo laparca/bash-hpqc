@@ -191,5 +191,5 @@ if [ "${PIPESTATUS[1]}" != 0 ]; then
 fi
 
 [ ! -d ~/.hpqc/searchs ] && mkdir -p ~/.hpqc/searchs
-echo "${FINAL_QUERY}" > ~/hpqc/searchs/"${NAME}".search
+echo "${FINAL_QUERY}" > ~/.hpqc/searchs/"${NAME}".search
 
