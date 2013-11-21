@@ -10,7 +10,7 @@ AutoReqProv: no
 Packager:	Samuel Rodriguez Sevilla <samuel.rodriguez@diagroup.com>
 BuildArchitectures: i386
 BuildRoot:	/tmp/hpqc-%{version}-%{release}
-Requires:	bash curl libxslt
+Requires:	bash curl libxslt dialog
 
 %description
 
