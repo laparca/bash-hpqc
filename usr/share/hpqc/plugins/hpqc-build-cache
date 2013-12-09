@@ -1,47 +1,66 @@
 #!/bin/bash
-[ ! -e ${CACHE} ] && mkdir -p ${CACHE}
-[ ! -d ${CACHE} ] && echo "${CACHE} no es un directorio" && exit 1
+function help {
+	case $1 in
+		1)
+			;;
+		2)
+			echo "Crea una cache local de los metadatos de HPQC"
+			;;
+	esac
+}
 
-rm ${CACHE}/*
-# AUTHENTICATE
-curl --basic -D ${HEAD} --cookie-jar ${COOKIES} -u "${USER}:${PASS}" "${BASE_URL}/qcbin/authentication-point/authenticate"
-
-# LIST OF ENTITIES
-curl -D ${HEAD} --cookie ${COOKIES} --cookie-jar ${COOKIES} "${BASE_URL}/qcbin/rest/domains/DEFAULT/projects/DIA_N2A/customization/entities" | xsltproc $(getFilter entities) - | sed -e '1d' > ${CACHE}/entities.csv
-
-# GETS THE FIELDS OF EACH ENTITIE
-while read line; do
-	OLD_IFS=$IFS
-	IFS='|'
-	tokens=($line)
-	IFS=${OLD_IFS}
-
-	if [ -n "${tokens[0]}" ]; then
-		ENTITIE=${CACHE}/entity_${tokens[0]}_fields.csv
-		
-		curl -D ${HEAD} --cookie ${COOKIES} --cookie-jar ${COOKIES} "${BASE_URL}/qcbin/rest/domains/DEFAULT/projects/DIA_N2A/customization/entities/${tokens[0]}/fields" | xsltproc $(getFilter entity) - | sed -e '1d' > ${ENTITIE}
+function call {
+	if [ "$1" == "help" ]; then
+		cat <<END
+Crea una cache de los metadatos que tiene actualmente HP Quality Center.
+END
+		exit 0
 	fi
 
-	# GETS THE LISTS USED
-	while read entitie_line; do
+	[ ! -e ${CACHE} ] && mkdir -p ${CACHE}
+	[ ! -d ${CACHE} ] && echo "${CACHE} no es un directorio" && exit 1
+	
+	rm ${CACHE}/*
+	# AUTHENTICATE
+	curl --basic -D ${HEAD} --cookie-jar ${COOKIES} -u "${USER}:${PASS}" "${BASE_URL}/qcbin/authentication-point/authenticate"
+	
+	# LIST OF ENTITIES
+	curl -D ${HEAD} --cookie ${COOKIES} --cookie-jar ${COOKIES} "${BASE_URL}/qcbin/rest/domains/DEFAULT/projects/DIA_N2A/customization/entities" | xsltproc $(getFilter entities) - | sed -e '1d' > ${CACHE}/entities.csv
+	
+	# GETS THE FIELDS OF EACH ENTITIE
+	while read line; do
 		OLD_IFS=$IFS
 		IFS='|'
-		entitie_tokens=($entitie_line)
+		tokens=($line)
 		IFS=${OLD_IFS}
-		if [ "${entitie_tokens[7]}" = "LookupList" ]; then
-			LISTS="$LISTS ${entitie_tokens[15]}"
+	
+		if [ -n "${tokens[0]}" ]; then
+			ENTITIE=${CACHE}/entity_${tokens[0]}_fields.csv
+			
+			curl -D ${HEAD} --cookie ${COOKIES} --cookie-jar ${COOKIES} "${BASE_URL}/qcbin/rest/domains/DEFAULT/projects/DIA_N2A/customization/entities/${tokens[0]}/fields" | xsltproc $(getFilter entity) - | sed -e '1d' > ${ENTITIE}
 		fi
-	done < ${ENTITIE}
-done < ${CACHE}/entities.csv
-
-UNIQ_LISTS="$(echo ${LISTS} | tr ' ' '\n' | sort -g | uniq)"
-for list in ${UNIQ_LISTS}; do
-	LIST="${CACHE}/list_${list}.csv"
-	curl -D ${HEAD} --cookie ${COOKIES} --cookie-jar ${COOKIES} "${BASE_URL}/qcbin/rest/domains/DEFAULT/projects/DIA_N2A/customization/lists?id=${list}" | xsltproc $(getFilter list) - | sed -e '1d' > ${LIST}
-
-done
-
-# GETS RELEASES
-curl -D ${HEAD} --cookie ${COOKIES} --cookie-jar ${COOKIES} "${BASE_URL}/qcbin/rest/domains/DEFAULT/projects/DIA_N2A/releases" | xsltproc $(getFilter releases) - | sed -e '1d' > ${CACHE}/releases.csv
-
-rm ${COOKIES}
+	
+		# GETS THE LISTS USED
+		while read entitie_line; do
+			OLD_IFS=$IFS
+			IFS='|'
+			entitie_tokens=($entitie_line)
+			IFS=${OLD_IFS}
+			if [ "${entitie_tokens[7]}" = "LookupList" ]; then
+				LISTS="$LISTS ${entitie_tokens[15]}"
+			fi
+		done < ${ENTITIE}
+	done < ${CACHE}/entities.csv
+	
+	UNIQ_LISTS="$(echo ${LISTS} | tr ' ' '\n' | sort -g | uniq)"
+	for list in ${UNIQ_LISTS}; do
+		LIST="${CACHE}/list_${list}.csv"
+		curl -D ${HEAD} --cookie ${COOKIES} --cookie-jar ${COOKIES} "${BASE_URL}/qcbin/rest/domains/DEFAULT/projects/DIA_N2A/customization/lists?id=${list}" | xsltproc $(getFilter list) - | sed -e '1d' > ${LIST}
+	
+	done
+	
+	# GETS RELEASES
+	curl -D ${HEAD} --cookie ${COOKIES} --cookie-jar ${COOKIES} "${BASE_URL}/qcbin/rest/domains/DEFAULT/projects/DIA_N2A/releases" | xsltproc $(getFilter releases) - | sed -e '1d' > ${CACHE}/releases.csv
+	
+	rm ${COOKIES}
+}
