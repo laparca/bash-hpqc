@@ -5,9 +5,7 @@ for file in ${CONFIG_PATHS}; do
 	expanded_file=$(bash -c "echo $file")
 	[ -f ${expanded_file} ] && . $expanded_file
 done
-
-PLUGIN="$1"
-shift
+PLUGIN_PATH="/home/laparca/projects/bash-hpqc/usr/share/hpqc/plugins"
 
 # Look for views in
 function getView
@@ -82,10 +80,56 @@ function downloadEntities
 	fi
 }
 
-plugin=$(getPlugin ${PLUGIN})
-if [ -z "${plugin}" ]; then
-	echo "Debe asignar un plugin adecuado"
+
+function __help {
+	cat <<END
+HPQC Linux Command Line Tool
+$0 [herramienta [parametros]] 
+
+END
+	for path in ${PLUGIN_PATH}; do
+		expanded_path="$(bash -c "echo $path")"
+		pushd "$expanded_path" > /dev/null
+		for plugin in hpqc-*; do
+			. "$plugin"
+			echo -n "   ${plugin/hpqc-/}     "
+			help 2
+		done
+		popd > /dev/null
+	done
+}
+
+if [ -z "$1" ]; then
+	__help
 	exit 1
 fi
 
-. ${plugin} "$@"
+case "$1" in
+	help)
+		__help
+		exit 1
+		;;
+
+	--commands)
+		# Para cargar la lista de comando para autocompletado
+		shift
+		PLUGIN=$1
+		shift
+		plugin=$(getPlugin ${PLUGIN})
+		. ${plugin}
+		help 1 "$@"
+		;;
+
+	*)
+		PLUGIN=$1
+		shift
+		plugin=$(getPlugin ${PLUGIN})
+		if [ -z "${plugin}" ]; then
+			echo "Debe asignar un plugin adecuado"
+			exit 1
+		fi
+	
+		. ${plugin}
+	   call "$@"
+	   ;;
+esac
