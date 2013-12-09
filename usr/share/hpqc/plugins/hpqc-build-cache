@@ -44,4 +44,7 @@ done
 # GETS RELEASES
 curl -D ${HEAD} --cookie ${COOKIES} --cookie-jar ${COOKIES} "${BASE_URL}/qcbin/rest/domains/DEFAULT/projects/DIA_N2A/releases" | xsltproc $(getFilter releases) - | sed -e '1d' > ${CACHE}/releases.csv
 
+# GETS CYCLES
+curl -D ${HEAD} --cookie ${COOKIES} --cookie-jar ${COOKIES} "${BASE_URL}/qcbin/rest/domains/DEFAULT/projects/DIA_N2A/release-cycles?page-size=${MAX_DEFECTS}" | xsltproc $(getFilter release-cycles) - | sed -e '1d' > ${CACHE}/release-cycles.csv
+
 rm ${COOKIES}
