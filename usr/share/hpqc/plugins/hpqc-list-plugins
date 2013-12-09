@@ -1,12 +1,29 @@
 #!/bin/bash
 
-for path in ${PLUGIN_PATH}; do
-	expanded_path=$(bash -c "echo $path")
-	pushd "$expanded_path" 2> /dev/null > /dev/null
-	if [ $? = 0 ]; then
-		for i in hpqc-*; do
-			echo ${i/hpqc-/}
-		done
-		popd > /dev/null
+function help {
+	case "$1" in
+		1)
+			;;
+		2)
+			echo "Muestra todos los plugins configurados."
+			;;
+	esac
+}
+
+function call {
+	if [ "$1" == "help" ]; then
+		help 2
+		exit 0
 	fi
-done
+
+	for path in ${PLUGIN_PATH}; do
+		expanded_path=$(bash -c "echo $path")
+		pushd "$expanded_path" 2> /dev/null > /dev/null
+		if [ $? = 0 ]; then
+			for i in hpqc-*; do
+				echo ${i/hpqc-/}
+			done
+			popd > /dev/null
+		fi
+	done
+}
