@@ -1,6 +1,6 @@
 Name:		hpqc
 Version:	1.0.0
-Release:	0005
+Release:	0006
 Summary:	Installs the HPQC command line tool
 #Copyright:	DIA S.A.
 License:	GPL
@@ -13,6 +13,8 @@ BuildRoot:	/tmp/hpqc-%{version}-%{release}
 Requires:	bash curl libxslt dialog
 
 %description
+HPQC command line tools grands the hability of query easily the information of
+a HPQC site.
 
 %prep
 [ -d ${_builddir}/hpqc ] && rm -r ${_builddir}/hpqc
@@ -37,6 +39,8 @@ rm -vrf ${RPM_BUILD_ROOT}
 %attr(755,root,root) %{_datadir}/hpqc/plugins/hpqc-*
 %{_datadir}/hpqc/views/*.view
 %{_datadir}/hpqc/filters/*
+%{_datadir}/man/en/man1/*
+%{_datadir}/man/es/man1/*
 %doc
 
 %post
@@ -46,6 +50,5 @@ rm -vrf ${RPM_BUILD_ROOT}
 %postun
 
 %changelog
-* Wed Sep 25 2013 Samuel Rodriguez Sevilla <samuel.rodriguez@diagroup.com> - 1.1.0 Added new certificates and certificate installacion functionality.
-* Fri Feb 08 2013 Samuel Rodriguez Sevilla <samuel.rodriguez@diagroup.com> - 1.0.0
-- First attempt of SPEC for WSD
+* Fri Nov 29 2013 Samuel Rodriguez Sevilla <samuel.rodriguez@diagroup.com> - 1.0.0 Added manual pages.
+- First attempt of SPEC for HPQC
