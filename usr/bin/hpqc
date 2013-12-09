@@ -62,6 +62,26 @@ function getPlugin
 	echo ${RESULT}
 }
 
+function downloadEntities
+{
+	URL=$1
+	TMP_FILE=$(mktemp /tmp/entities_donload.XXXXXXXXXX)
+	curl -D ${HEAD} --cookie ${COOKIES} --cookie-jar ${COOKIES} -g "${URL}" > ${TMP_FILE}
+
+	# Test if we have to paginate
+	TOTAL_RESULT=$(xsltproc $(getFilter total_results) ${TMP_FILE})
+	if [ $TOTAL_RESULT -gt $MAX_DEFECTS ]; then
+		DOWNLOADED=${MAX_DEFECTS}
+	else
+		DONLOADED=${TOTAL_RESULT}
+	fi
+
+	PAGES=$((${TOTAL_RESULT} / ${MAX_DEFECTS}))
+	if [ $((${TOTAL_RESULT} % ${MAX_DEFECTS})) != 0 ]; then
+		PAGES=$(($PAGES + 1))
+	fi
+}
+
 plugin=$(getPlugin ${PLUGIN})
 if [ -z "${plugin}" ]; then
 	echo "Debe asignar un plugin adecuado"
