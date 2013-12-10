@@ -5,7 +5,7 @@ for file in ${CONFIG_PATHS}; do
 	expanded_file=$(bash -c "echo $file")
 	[ -f ${expanded_file} ] && . $expanded_file
 done
-PLUGIN_PATH="/home/laparca/projects/bash-hpqc/usr/share/hpqc/plugins"
+#PLUGIN_PATH="/home/laparca/projects/bash-hpqc/usr/share/hpqc/plugins"
 
 # Look for views in
 function getView
