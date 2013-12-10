@@ -1,0 +1,29 @@
+function help {
+	case $1 in
+		1)
+			;;
+		2)
+			echo "Permite interactuar con la configuracion personal."
+			;;
+	esac
+}
+
+function call {
+	local CONFIG_FILE
+	if [ "$1" == "help" ]; then
+		help 2
+		exit 0
+	fi
+
+	CONFIG_FILE=hpqc.config
+	if [ ! -f ~/.hpqc/${CONFIG_FILE} ]; then
+		mkdir ~/.hpqc 2> /dev/null
+		cp /etc/hpqc/${CONFIG_FILE} ~/.hpqc/${CONFIG_FILE}
+	fi
+
+	if [ -z "${EDITOR}" ]; then
+		EDITOR=vim
+	fi
+
+	${EDITOR} ~/.hpqc/${CONFIG_FILE}
+}
