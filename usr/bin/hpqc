@@ -126,6 +126,13 @@ function __help {
 	done
 }
 
+function list_plugins {
+	local plugin
+	plugin=$(getPlugin list-plugins)
+	. ${plugin}
+	call
+}
+
 if [ -z "$1" ]; then
 	__help
 	exit 0
@@ -140,11 +147,19 @@ case "$1" in
 	--commands)
 		# Para cargar la lista de comando para autocompletado
 		shift
-		PLUGIN=$1
-		shift
-		plugin=$(getPlugin ${PLUGIN})
-		. ${plugin}
-		help 1 "$@"
+		if [ "$#" -eq 0 ]; then
+			list_plugins
+		else
+			PLUGIN=$1
+			shift
+			plugin=$(getPlugin ${PLUGIN})
+			if [ -z "${plugin}" ]; then
+				list_plugins
+			else
+				. ${plugin}
+				help 1 "$@"
+			fi
+		fi
 		;;
 
 	*)

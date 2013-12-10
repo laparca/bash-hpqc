@@ -4,7 +4,7 @@ function help {
 		1)
 			;;
 		2)
-			echo "Crea una cache local de los metadatos de HPQC"
+			echo "Crea una cache local de los metadatos de HPQC."
 			;;
 	esac
 }

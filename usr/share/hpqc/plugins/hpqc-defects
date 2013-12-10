@@ -6,7 +6,7 @@ function help {
 		1)
 			;;
 		2)
-			echo "Descarga un conjunto de defectos desde HPQC"
+			echo "Descarga un conjunto de defectos desde HPQC."
 			;;
 	esac
 }
