@@ -21,7 +21,9 @@ function call {
 		pushd "$expanded_path" 2> /dev/null > /dev/null
 		if [ $? = 0 ]; then
 			for i in hpqc-*; do
-				echo ${i/hpqc-/}
+				if [ "$i" != 'hpqc-*' ]; then
+					echo ${i/hpqc-/}
+				fi
 			done
 			popd > /dev/null
 		fi

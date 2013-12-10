@@ -116,9 +116,11 @@ function __help {
 		expanded_path="$(bash -c "echo $path")"
 		pushd "$expanded_path" > /dev/null
 		(for plugin in hpqc-*; do
-			. "$plugin"
-			echo -n "   ${plugin/hpqc-/}|"
-			help 2
+			if [ "$plugin" != 'hpqc-*' ]; then
+				. "$plugin"
+				echo -n "   ${plugin/hpqc-/}|"
+				help 2
+			fi
 		done) | column -s'|' -t
 		popd > /dev/null
 	done

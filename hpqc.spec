@@ -1,6 +1,6 @@
 Name:		hpqc
-Version:	1.0.0
-Release:	0006
+Version:	1.0.1
+Release:	0002
 Summary:	Installs the HPQC command line tool
 #Copyright:	DIA S.A.
 License:	GPL
@@ -41,6 +41,7 @@ rm -vrf ${RPM_BUILD_ROOT}
 %{_datadir}/hpqc/filters/*
 %{_datadir}/man/en/man1/*
 %{_datadir}/man/es/man1/*
+%{_datadir}/doc/hpqc/*
 %doc
 
 %post
