@@ -1,3 +1,4 @@
+#!/bin/bash
 function help {
 	case $1 in
 		1)
@@ -23,6 +24,10 @@ function call {
 
 	if [ -z "${EDITOR}" ]; then
 		EDITOR=vim
+	fi
+
+	if ! grep "bash_completion.d.hpqc.bash" ~/.bash_profile; then
+		echo ". /etc/bash_completion.d/hpqc.bash" >> ~/.bash_profile
 	fi
 
 	${EDITOR} ~/.hpqc/${CONFIG_FILE}
