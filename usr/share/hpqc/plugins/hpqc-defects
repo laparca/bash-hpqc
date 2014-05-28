@@ -49,7 +49,7 @@ END
 	# LIST OF ENTITIES
 	TMP_FILE=$(mktemp /tmp/defects.XXXXXXXXXX)
 	QUERY="$(echo ${QUERY} | sed -e 's, ,%20,g')"
-	downloadEntities "${BASE_URL}/qcbin/rest/domains/DEFAULT/projects/DIA_N2A/defects?page-size=${MAX_DEFECTS}${QUERY}" > ${TMP_FILE}
+	downloadEntities "${BASE_URL}/qcbin/rest/domains/${DOMAIN}/projects/${PROJECT}/defects?page-size=${MAX_DEFECTS}${QUERY}" > ${TMP_FILE}
 	
 	if [ -n "$VIEW" ]; then
 		xsltproc "$VIEW" "${TMP_FILE}" | sed -e '1d' -e '$d'
