@@ -11,11 +11,11 @@ function create_view() {
 		<xsl:for-each select="Entities/Entity">
 END
 
-	echo -n "			<xsl:value-of select='Fields/Field[@Name=$1]/Value'/>"
+	echo -n "			<xsl:value-of select='Fields/Field[@Name=\"$1\"]/Value'/>"
 	shift
 
 	while [ -n "$1" ]; do
-		echo -n "|<xsl:value-of select='Fields/Field[@Name=$1]/Value'/>"
+		echo -n "|<xsl:value-of select='Fields/Field[@Name=\"$1\"]/Value'/>"
 		shift
 	done
 
