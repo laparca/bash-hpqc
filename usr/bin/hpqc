@@ -60,6 +60,10 @@ function getPlugin
 	echo ${RESULT}
 }
 
+##
+# Download entities from the specified URL
+# @param URL
+# @return echoes the result
 function downloadEntities
 {
 	local TMP_FILE

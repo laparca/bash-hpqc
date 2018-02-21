@@ -1,0 +1,63 @@
+#!/bin/bash
+
+
+function help {
+	case $1 in
+		1)
+			;;
+		2)
+			echo "Descarga un conjunto de defectos desde HPQC."
+			;;
+	esac
+}
+
+function call {
+	if [ "$1" == "help" ]; then
+		cat <<END
+Descarga un conjunto de defectos desde HPQC. Se puede asignar un criterio de
+busqueda de defectos en el formato de HPQC o un nombre de busqueda generado con
+'new-search'. Tambien se puede incluir un nombrede vista, creado con new-view,y
+que pertimira mostrar de forma tabulara solo un conjuto de columnas. El orden de
+estos nombres no es importante, pero si hay que tener en cuenta que una vista y
+una busqueda no pueden coincidir en nombre.
+END
+		exit 0
+	fi
+
+	[ ! -d ${CACHE} ] && echo "${CACHE} no es un directorio" && exit 1
+	
+	# AUTHENTICATE
+	curl --basic -D ${HEAD} --cookie-jar ${COOKIES} -u "${USER}:${PASS}" "${BASE_URL}/qcbin/authentication-point/authenticate"
+	
+	while [ -n "$1" ]; do
+		view=$(getView "$1")
+		search=$(getSearch "$1")
+	
+		if [ -f "$1" ]; then
+			QUERY='&query={'$(<"$1")'}'
+		elif [ -n "${view}" ]; then
+			VIEW="${view}"
+		elif [ -n "${search}" ]; then
+			QUERY='&query={'$(<"${search}")'}'
+		else
+			QUERY='&query={'"$1"'}'
+		fi
+	
+		shift
+	done
+	
+	# LIST OF ENTITIES
+	TMP_FILE=$(mktemp /tmp/defects.XXXXXXXXXX)
+	QUERY="$(echo ${QUERY} | sed -e 's, ,%20,g')"
+	downloadEntities "${BASE_URL}/qcbin/rest/domains/${DOMAIN}/projects/${PROJECT}/requirements?page-size=${MAX_DEFECTS}${QUERY}" > ${TMP_FILE}
+	
+	if [ -n "$VIEW" ]; then
+		xsltproc "$VIEW" "${TMP_FILE}" | sed -e '1d' -e '$d'
+	else
+		cat "${TMP_FILE}"
+	fi
+	
+	rm ${TMP_FILE}
+	
+	rm ${COOKIES}
+}
