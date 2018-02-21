@@ -21,5 +21,5 @@ install:
 	cp -rv etc $(DESTDIR)
 
 deb:
-	git archive --format tar.gz --prefix bash-hpqc-$(VERSION).$(RELEASE)/ HEAD > ../bash-hpqc_$(VERSION).$(RELEASE).orig.tar.gz
+	git archive --format tar.gz --prefix bash-hpqc-$(VERSION)/ HEAD > ../bash-hpqc_$(VERSION).orig.tar.gz
 	dpkg-buildpackage -rfakeroot -g
