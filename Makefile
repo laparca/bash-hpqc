@@ -1,11 +1,14 @@
 VERSION=$(shell grep Version hpqc.spec | sed -n -e 's/^Version:[^0-9]*\(.*\)$$/\1/p')
 RELEASE=$(shell grep Release hpqc.spec | sed -n -e 's/^Release:[^0-9]*\(.*\)$$/\1/p')
 
+all:
+	echo "Nothing to do in target all"
+
 rpm:
 	[ -d hpqc ] && rm -r hpqc || true
 	[ -d rpmbuild ] && rm -r rpmbuild || true 
 	mkdir hpqc
-	mkdir -p rpmbuild/{BUILD,BUILDROOT,RPMS,SPECS,SRPMS,SOURCES}
+	mkdir -p rpmbuild/BUILD rpmbuild/BUILDROOT rpmbuild/RPMS rpmbuild/SPECS rpmbuild/SRPMS rpmbuild/SOURCES
 	cp hpqc.spec rpmbuild/SPECS/hpqc.spec
 	cp -r etc usr hpqc
 	tar cvfz rpmbuild/SOURCES/hpqc.tgz hpqc
