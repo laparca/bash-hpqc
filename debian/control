@@ -1,0 +1,14 @@
+Source: bash-hpqc
+Section: devel
+Priority: optional
+Build-depends: debhelper (>=9)
+Maintainer: Samuel R. Sevilla <samuel.rodriguez@diagroup.com>
+Standards-Version: 3.9.5
+Homepage: https://www.dia.es/
+
+Package: bash-hpqc
+Architecture: all
+Depends: curl, xsltproc, bash
+Description: Toolset for work with HP Quality Center
+  HPQC is a tool for organize software development (tests, defects, etc.). This
+  tools grants the option of work from command line.

@@ -1,0 +1,6 @@
+bash-hpqc (1.0.0-1) unstable; urgency=medium
+
+  * Generamos primer paquete para Debian.
+
+ -- Samuel R. Sevilla <samuel.rodriguez@diagroup.com>  Tue, 21 Feb 2018 08:33:35 +0100
+
