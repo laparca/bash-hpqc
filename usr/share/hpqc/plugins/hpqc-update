@@ -1,0 +1,48 @@
+#!/bin/bash
+
+
+function help {
+	case $1 in
+		1)
+			case "$2" in
+				get | release | status | do-lock)
+					cut -f1 -d'|' "${CACHE}/entities.csv" | tr '\n' ' '
+					;;
+			esac
+			;;
+		2)
+			echo $"Updates the contents of an entity."
+			;;
+	esac
+}
+
+function call {
+	if [ "$1" == "help" ]; then
+		echo
+		exit 0
+	fi
+
+	[ ! -d ${CACHE} ] && echo $"${CACHE} isn't a directory." && exit 1
+	
+	# AUTHENTICATE
+	doLogin
+
+	ENTITY_TYPE="$1"
+	ENTITY_ID="$2"
+	CONTENT="$3"
+
+	[ -z "$ENTITY_TYPE" ] && echo $"There isn't an entity type." && exit 1
+	[ -z "$ENTITY_ID"   ] && echo $"There isn't an entity id." && exit 1
+	[ -z "$CONTENT"     ] && echo $"There isn't content to update." && exit 1
+
+	TMP_FILE=$(mktemp /tmp/defects.XXXXXXXXXX)
+
+	hpqc lock get "${ENTITY_TYPE}" "${ENTITY_ID}" > /dev/null
+	sendPUT "${BASE_URL}/qcbin/rest/domains/${DOMAIN}/projects/${PROJECT}/${ENTITY_TYPE}/${ENTITY_ID}" "${CONTENT}" > ${TMP_FILE}
+	hpqc lock release "${ENTITY_TYPE}" "${ENTITY_ID}" > /dev/null
+	
+	cat "${TMP_FILE}"
+	
+	rm ${TMP_FILE}
+}
+
