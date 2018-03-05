@@ -1,6 +1,6 @@
 Name:		hpqc
 Version:	1.1.0
-Release:	2
+Release:	3
 Summary:	Installs the HPQC command line tool
 #Copyright:	DIA S.A.
 License:	GPL

@@ -1,3 +1,10 @@
+bash-hpqc (1.1.0-3) unstable; urgency=medium
+
+  * Adding dialog dependency. It is necesary for incidencias_sa and
+  comentarios commands.
+
+ -- Samuel R. Sevilla <samuel.rodriguez@diagroup.com>  Tue, 21 Feb 2018 08:33:35 +0100
+
 bash-hpqc (1.1.0-2) unstable; urgency=medium
 
   * Generamos primer paquete para Debian.
