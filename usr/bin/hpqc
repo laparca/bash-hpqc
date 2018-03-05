@@ -60,6 +60,61 @@ function getPlugin
 	echo ${RESULT}
 }
 
+function sendGET
+{
+	local URL="$1"
+	curl -s -X GET -D ${HEAD} --cookie ${COOKIES} --cookie-jar ${COOKIES} -g "${URL}"
+}
+
+function sendPUT
+{
+	local URL="$1"
+	local DATA="$2"
+	if [ -z "${DATA}" ]; then
+		false
+	else
+		curl -s -X PUT -H 'Content-Type: application/xml' -D ${HEAD} --cookie ${COOKIES} --cookie-jar ${COOKIES} --data-binary "${DATA}" "${URL}"
+	fi
+}
+
+function sendPOST
+{
+	local URL="$1"
+	local DATA="$2"
+	if [ -z "${DATA}" ]; then
+		curl -s -X POST -H 'Content-Type:' -D ${HEAD} --cookie ${COOKIES} --cookie-jar ${COOKIES} "${URL}"
+	else
+		curl -s -X POST -H 'Content-Type: application/xml' -D ${HEAD} --cookie ${COOKIES} --cookie-jar ${COOKIES} --data-binary "${DATA}" "${URL}"
+	fi
+}
+
+function sendDELETE
+{
+	local URL="$1"
+	curl -s -X DELETE -D ${HEAD} --cookie ${COOKIES} --cookie-jar ${COOKIES} "${URL}"
+}
+
+function isAuthenticated
+{
+	sendGET "${BASE_URL}/qcbin/rest/is-authenticated" > /dev/null
+	grep "HTTP/1.1 200 OK" "${HEAD}" > /dev/null
+}
+
+function doLogin
+{
+	if ! isAuthenticated; then
+		rm "${COOKIES}"
+		curl -s --basic -D ${HEAD} --cookie-jar ${COOKIES} -u "${USER}:${PASS}" "${BASE_URL}/qcbin/authentication-point/authenticate" > /dev/null
+	fi
+}
+
+function doLogout
+{
+	sendGET "${BASE_URL}/qcbin/authentication-point/logout" > /dev/null
+	rm "${HEAD}"
+	rm "${COOKIE}"
+}
+
 ##
 # Download entities from the specified URL
 # @param URL
@@ -74,11 +129,11 @@ function downloadEntities
 	local PAGE
 	local TOTAL_RESULT
 
-	URL=$1
-	TMP_FILE=$(mktemp /tmp/entities_donload.XXXXXXXXXX)
+	URL="$1"
+	TMP_FILE=$(mktemp /tmp/entities_download.XXXXXXXXXX)
 	ENTITIES_FILES=
 
-	curl -D ${HEAD} --cookie ${COOKIES} --cookie-jar ${COOKIES} -g "${URL}" > ${TMP_FILE}
+	sendGET "${URL}" > ${TMP_FILE}
 	ENTITIES_FILES="${ENTITIES_FILES} ${TMP_FILE}"
 
 	# Test if we have to paginate
@@ -97,7 +152,7 @@ function downloadEntities
 	PAGE=1
 	while [ ${PAGE} -lt ${PAGES} ]; do
 		TMP_FILE=$(mktemp /tmp/entities_donload.XXXXXXXXXX)
-		curl -D ${HEAD} --cookie ${COOKIES} --cookie-jar ${COOKIES} -g "${URL}&start-index=$(( ${PAGE} * ${MAX_DEFECTS} ))" > ${TMP_FILE}
+		sendGET "${URL}&start-index=$(( ${PAGE} * ${MAX_DEFECTS} ))" > ${TMP_FILE}
 		ENTITIES_FILES="${ENTITIES_FILES} ${TMP_FILE}"
 		(( PAGE ++ ))
 	done
@@ -141,6 +196,8 @@ if [ -z "$1" ]; then
 	__help
 	exit 0
 fi
+
+[ ! -d ~/.hpqc ] && mkdir ~/.hpqc
 
 case "$1" in
 	help)

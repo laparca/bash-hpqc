@@ -6,7 +6,7 @@ function help {
 		1)
 			case "$2" in
 				get | release | status | do-lock)
-					cut -f1 -d'|' ~/.hpqc/cache/entities.csv | tr '\n' ' '
+					cut -f1 -d'|' "${CACHE}/entities.csv" | tr '\n' ' '
 					;;
 				*)
 					echo "get release status do-locked"
@@ -34,7 +34,7 @@ function call {
 	[ ! -d ${CACHE} ] && echo $"${CACHE} isn't a directory." && exit 1
 	
 	# AUTHENTICATE
-	curl --basic -D ${HEAD} --cookie-jar ${COOKIES} -u "${USER}:${PASS}" "${BASE_URL}/qcbin/authentication-point/authenticate"
+	doLogin
 
 	case "$1" in
 		get)
@@ -67,19 +67,17 @@ function call {
 	TMP_FILE=$(mktemp /tmp/defects.XXXXXXXXXX)
 
 	if [ "$MODE" != "DO-LOCKED" ]; then
-		curl -X "$MODE" -D ${HEAD} --cookie ${COOKIES} --cookie-jar ${COOKIES} -g "${BASE_URL}/qcbin/rest/domains/${DOMAIN}/projects/${PROJECT}/${ENTITY_TYPE}/${ENTITY_ID}/lock" > ${TMP_FILE}
+		send${MODE} "${BASE_URL}/qcbin/rest/domains/${DOMAIN}/projects/${PROJECT}/${ENTITY_TYPE}/${ENTITY_ID}/lock" > ${TMP_FILE}
 	else
-		curl -X "POST" -D ${HEAD} --cookie ${COOKIES} --cookie-jar ${COOKIES} -g "${BASE_URL}/qcbin/rest/domains/${DOMAIN}/projects/${PROJECT}/${ENTITY_TYPE}/${ENTITY_ID}/lock" > ${TMP_FILE}
+		sendPOST "${BASE_URL}/qcbin/rest/domains/${DOMAIN}/projects/${PROJECT}/${ENTITY_TYPE}/${ENTITY_ID}/lock" > ${TMP_FILE}
 
 		$@
 
-		curl -X "DELETE" -D ${HEAD} --cookie ${COOKIES} --cookie-jar ${COOKIES} -g "${BASE_URL}/qcbin/rest/domains/${DOMAIN}/projects/${PROJECT}/${ENTITY_TYPE}/${ENTITY_ID}/lock" > ${TMP_FILE}
+		sendDELETE "${BASE_URL}/qcbin/rest/domains/${DOMAIN}/projects/${PROJECT}/${ENTITY_TYPE}/${ENTITY_ID}/lock" > ${TMP_FILE}
 	fi
 	
 	cat "${TMP_FILE}"
 	
 	rm ${TMP_FILE}
-	
-	rm ${COOKIES}
 }
 

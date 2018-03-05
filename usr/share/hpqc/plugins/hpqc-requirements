@@ -27,7 +27,7 @@ END
 	[ ! -d ${CACHE} ] && echo "${CACHE} no es un directorio" && exit 1
 	
 	# AUTHENTICATE
-	curl --basic -D ${HEAD} --cookie-jar ${COOKIES} -u "${USER}:${PASS}" "${BASE_URL}/qcbin/authentication-point/authenticate"
+	doLogin
 	
 	while [ -n "$1" ]; do
 		view=$(getView "$1")
@@ -58,6 +58,4 @@ END
 	fi
 	
 	rm ${TMP_FILE}
-	
-	rm ${COOKIES}
 }

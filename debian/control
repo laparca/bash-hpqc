@@ -8,7 +8,7 @@ Homepage: https://www.dia.es/
 
 Package: bash-hpqc
 Architecture: all
-Depends: curl, xsltproc, bash, dialog
+Depends: curl, xsltproc, bash, dialog, pandoc
 Description: Toolset for work with HP Quality Center
   HPQC is a tool for organize software development (tests, defects, etc.). This
   tools grants the option of work from command line.
