@@ -1,0 +1,33 @@
+#!/bin/bash
+
+
+function help {
+	case $1 in
+		1)
+			;;
+		2)
+			echo $"Checks out the version information of an entity."
+			;;
+	esac
+}
+
+function call {
+	if [ "$1" == "help" ]; then
+		cat <<END
+END
+		exit 0
+	fi
+
+	[ ! -d ${CACHE} ] && echo "${CACHE} no es un directorio" && exit 1
+	
+	# AUTHENTICATE
+	doLogin
+	
+	ENTITY_TYPE="$1"
+	ENTITY_ID="$2"
+
+	[ -z "$ENTITY_TYPE" ] && echo $"There isn't an entity type." && exit 1
+	[ -z "$ENTITY_ID"   ] && echo $"There isn't an entity id." && exit 1
+	
+	sendPOST "${BASE_URL}/qcbin/rest/domains/${DOMAIN}/projects/${PROJECT}/${ENTITY_TYPE}/${ENTITY_ID}/versions/check-out"
+}
