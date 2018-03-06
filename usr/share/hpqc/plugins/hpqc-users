@@ -1,0 +1,49 @@
+#!/bin/bash
+
+
+function help {
+	case $1 in
+		1)
+			;;
+		2)
+			echo $"Informacion sobre usuario/s."
+			;;
+	esac
+}
+
+function call {
+	if [ "$1" == "help" ]; then
+		cat <<END
+Descarga la informacion sobre usuarios que hay en HPQC (si no se indica ninguno)
+o la informacion concreta del usuario indicado.
+END
+		exit 0
+	fi
+
+	[ ! -d ${CACHE} ] && echo "${CACHE} no es un directorio" && exit 1
+	
+	# AUTHENTICATE
+	doLogin
+	
+	view=$(getView "custom_users")
+	if [ -z "${view}" ]; then
+		echo $"Error opening custom_user view."
+		return 0
+	fi
+
+	if [ -n "$1" ]; then
+		if [ "$1" == "me" ]; then
+			QUERY="?name=$USER"
+		else
+			QUERY="?name=$1"
+		fi
+	fi
+	
+	# LIST OF ENTITIES
+	TMP_FILE=$(mktemp /tmp/defects.XXXXXXXXXX)
+	sendGET "${BASE_URL}/qcbin/rest/domains/${DOMAIN}/projects/${PROJECT}/customization/users${QUERY}" > ${TMP_FILE}
+	
+	xsltproc "$view" "${TMP_FILE}" | sed -e '1d' -e '$d'
+	
+	rm ${TMP_FILE}
+}
