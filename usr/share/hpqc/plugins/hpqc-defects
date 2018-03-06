@@ -19,13 +19,26 @@ function help {
 		3)
 			case "$2" in
 				assign)
-					echo $"Assigns a user to a defect (by id)."
+					echo $"Assigns a user to a defect (by id). Call it this form:"
+					echo
+					echo $"   hpqc defect assign ID [user]"
+					echo
+					echo $"If user is ommited then the actual user is used."
 					;;
 				cancel)
+					echo $"Marks a defect as cancelled. Call it this way:"
+					echo
+					echo $"   hpqc defect cancel ID"
 					;;
 				comment)
+					echo $"Adds a comment to a defect. Call it this form:"
+					echo
+					echo $"   hpqc defect comment ID"
 					;;
 				develop)
+					echo $"Marks a defect as developed. Call it this way:"
+					echo
+					echo $"   hpqc defect develop ID"
 					;;
 				*)
 					echo $"Downloads one or more defects from HPQC. A search criteria can be added using HPQC query format or generated search (use new-search plugin for that). Also a view filter can be added (use new-view plugin)."
@@ -42,6 +55,11 @@ function help {
 }
 
 function fetch {
+	if [ "$1" == "help" ]; then
+		help 3 fetch
+		return 0
+	fi
+
 	doLogin
 
 	while [ -n "$1" ]; do
@@ -78,6 +96,17 @@ function fetch {
 function assign {
 	local id=$1
 	local user=$2
+
+	if [ "$id" == "help" ]; then
+		help 3 assign
+		return 0
+	fi
+
+	if [ -z "$id" ]; then
+		echo $"There isn't a defect ID."
+		help 3 assign
+		return 1
+	fi
 
 	if [ -z "$user" ]; then
 		user="$USER"
@@ -151,7 +180,19 @@ END
 
 function develop {
 	local id=$1
-	comment=$(generate-comment $id)
+
+	if [ "$id" == "help" ]; then
+		help 3 develop
+		return 0
+	fi
+
+	if [ -z "$id" ]; then
+		echo $"There isn't a defect ID."
+		help 3 develop
+		return 1
+	fi
+
+	comment="$(generate-comment $id)"
 	if [ $? != 0 ]; then
 		echo $"Comment cannot be generated"
 		exit 1
@@ -162,7 +203,19 @@ function develop {
 
 function comment {
 	local id=$1
-	comment=$(generate-comment $id)
+
+	if [ "$id" == "help" ]; then
+		help 3 comment
+		return 0
+	fi
+
+	if [ -z "$id" ]; then
+		echo $"There isn't a defect ID."
+		help 3 comment
+		return 1
+	fi
+
+	comment="$(generate-comment $id)"
 	if [ $? != 0 ]; then
 		echo $"Comment cannot be generated"
 		exit 1
