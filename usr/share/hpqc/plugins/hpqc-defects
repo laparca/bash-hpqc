@@ -115,7 +115,32 @@ function generate-comment {
 	echo "$text" > $cancel_message
 	pandoc -H /usr/share/hpqc/hpqc.css --from markdown --to html --highlight-style kate --self-contained "${cancel_message}" > ${cancel_message}.1.html || comments-error "${cancel_message}" $"Error running pandoc"
 
-	premailer ${cancel_message}.1.html | sed -n '/\<body\>/,$p' | sed '/body>/d;/html>/d' | sed 's/$/\r/' > ${cancel_message}.2.html
+	hpqc users me | (
+	IFS='|'
+	read user fullname email phone
+		cat <<END
+<div align="left">
+	<font face="Arial" color="#000080" size="3">
+		<span style="font-size:10pt">
+			<b>________________________________________</b>
+		</span>
+	</font>
+	<font face="Arial">
+		<span style="font-size:8pt">
+			<br />
+		</span>
+	</font>
+	<font face="Arial" color="#000080">
+		<span style="font-size:8pt">
+			<b>$fullname &lt;$user&gt;, $(date +%d/%m/%Y):</b>
+		</span>
+	</font>
+	<font face="Arial">
+		<span style="font-size:8pt"> </span>
+	</font>
+</div>
+END
+	premailer ${cancel_message}.1.html | sed -n '/\<body\>/,$p' | sed '/body>/d;/html>/d' | sed 's/$/\r/') > ${cancel_message}.2.html
 
 	fetch 'id['$id']' dev-comments | perl -Mopen=locale -MHTML::Entities -pe '$_ = decode_entities($_)' > ${cancel_message}.original
 
