@@ -4,31 +4,46 @@
 function help {
 	case $1 in
 		1)
+			case "$2" in
+				help)
+					echo "assign cancel comment develop fetch"
+					;;
+				*)
+					echo "assign cancel comment develop fetch help"
+					;;
+			esac
 			;;
 		2)
-			echo "Descarga un conjunto de defectos desde HPQC."
+			echo $"Actions over defects in HPQC (cancel, develop, download, etc.)"
+			;;
+		3)
+			case "$2" in
+				assign)
+					echo $"Assigns a user to a defect (by id)."
+					;;
+				cancel)
+					;;
+				comment)
+					;;
+				develop)
+					;;
+				*)
+					echo $"Downloads one or more defects from HPQC. A search criteria can be added using HPQC query format or generated search (use new-search plugin for that). Also a view filter can be added (use new-view plugin)."
+#Descarga un conjunto de defectos desde HPQC. Se puede asignar un criterio de
+#busqueda de defectos en el formato de HPQC o un nombre de busqueda generado con
+#'new-search'. Tambien se puede incluir un nombrede vista, creado con new-view,y
+#que pertimira mostrar de forma tabulara solo un conjuto de columnas. El orden de
+#estos nombres no es importante, pero si hay que tener en cuenta que una vista y
+#una busqueda no pueden coincidir en nombre.
+					;;
+			esac
 			;;
 	esac
 }
 
-function call {
-	if [ "$1" == "help" ]; then
-		cat <<END
-Descarga un conjunto de defectos desde HPQC. Se puede asignar un criterio de
-busqueda de defectos en el formato de HPQC o un nombre de busqueda generado con
-'new-search'. Tambien se puede incluir un nombrede vista, creado con new-view,y
-que pertimira mostrar de forma tabulara solo un conjuto de columnas. El orden de
-estos nombres no es importante, pero si hay que tener en cuenta que una vista y
-una busqueda no pueden coincidir en nombre.
-END
-		exit 0
-	fi
-
-	[ ! -d ${CACHE} ] && echo "${CACHE} no es un directorio" && exit 1
-	
-	# AUTHENTICATE
+function fetch {
 	doLogin
-	
+
 	while [ -n "$1" ]; do
 		view=$(getView "$1")
 		search=$(getSearch "$1")
@@ -58,4 +73,108 @@ END
 	fi
 	
 	rm ${TMP_FILE}
+}
+
+function assign {
+	local id=$1
+	local user=$2
+
+	if [ -z "$user" ]; then
+		user="$USER"
+	fi
+	# Sorry, at this moment I use this values. It isn't the standard and everyone should adapt it.
+	hpqc update defects $id '<Entity Type="defect"><Fields><Field Name="owner"><Value>$user</Value></Field><Field Name="user-03"><Value>Asignado</Value></Field></Fields></Entity>'
+}
+
+function comment-error {
+	local file=$1
+	local message="$2"
+	local exit_status=$3
+
+	if [ -z "${exit_status}" ]; then
+		exit_status=1
+	fi
+
+	rm "$file"*
+	echo "${message}" 1>&2
+
+	exit $exit_status
+}
+
+function generate-comment {
+	local id=$1
+	local cancel_message="$(mktemp ~/.hpqc/cancel_message.XXXXXXXXX)"
+	local text="$(dialog --output-fd 1 --editbox ${cancel_message} 0 0)"
+	rm $cancel_message
+
+	if [ -z "$text" ]; then
+		echo $"There isn't a cancel message."
+		exit 1
+	fi
+
+	echo "$text" > $cancel_message
+	pandoc -H /usr/share/hpqc/hpqc.css --from markdown --to html --highlight-style kate --self-contained "${cancel_message}" > ${cancel_message}.1.html || comments-error "${cancel_message}" $"Error running pandoc"
+
+	premailer ${cancel_message}.1.html | sed -n '/\<body\>/,$p' | sed '/body>/d;/html>/d' | sed 's/$/\r/' > ${cancel_message}.2.html
+
+	fetch 'id['$id']' dev-comments | perl -Mopen=locale -MHTML::Entities -pe '$_ = decode_entities($_)' > ${cancel_message}.original
+
+	( (cat "${cancel_message}.original" | sed "/<\/body>/d;/<\/html>/d"); cat "${cancel_message}.2.html"; echo -e "</body>\r\n</html>\r") | perl -Mopen=locale -MHTML::Entities -pe '$_ = encode_entities($_)'
+
+	rm "${cancel_message}"*
+}
+
+function develop {
+	local id=$1
+	comment=$(generate-comment $id)
+	if [ $? != 0 ]; then
+		echo $"Comment cannot be generated"
+		exit 1
+	fi
+	
+	hpqc update defects $id '<Entity Type="defect"><Fields><Field Name="user-06"><Value>'$(date +%Y-%m-%d)'</Value></Field><Field Name="status"><Value>Fixed</Value></Field><Field Name="user-03">Desarrollado<Value></Value></Field><Field Name="dev-comments"><Value>'"${comment}"'</Value></Field></Fields></Entity>'
+}
+
+function comment {
+	local id=$1
+	comment=$(generate-comment $id)
+	if [ $? != 0 ]; then
+		echo $"Comment cannot be generated"
+		exit 1
+	fi
+	
+	hpqc update defects $id '<Entity Type="defect"><Fields><Field Name="dev-comments"><Value>'"${comment}"'</Value></Field></Fields></Entity>'
+}
+
+function call {
+	[ ! -d ${CACHE} ] && echo "${CACHE} no es un directorio" && exit 1
+	
+	
+	case "$1" in
+		help)
+			shift
+			help 3 $@
+			;;
+		cancel)
+			echo $"Do nothing"
+			;;
+		assign)
+			shift
+			assign $@
+			;;
+		develop)
+			shift
+			develop $@
+			;;
+		comment)
+			shift
+			comment $@
+			;;
+		fetch)
+			shift
+			fetch $@ 
+			;;
+		*)
+			fetch $@
+	esac
 }
