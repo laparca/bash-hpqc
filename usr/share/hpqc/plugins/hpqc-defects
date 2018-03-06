@@ -112,7 +112,7 @@ function assign {
 		user="$USER"
 	fi
 	# Sorry, at this moment I use this values. It isn't the standard and everyone should adapt it.
-	hpqc update defects $id '<Entity Type="defect"><Fields><Field Name="owner"><Value>$user</Value></Field><Field Name="user-03"><Value>Asignado</Value></Field></Fields></Entity>'
+	hpqc update defects $id '<Entity Type="defect"><Fields><Field Name="owner"><Value>'"$user"'</Value></Field><Field Name="user-03"><Value>Asignado</Value></Field></Fields></Entity>'
 }
 
 function comment-error {
@@ -143,6 +143,9 @@ function generate-comment {
 
 	echo "$text" > $cancel_message
 	pandoc -H /usr/share/hpqc/hpqc.css --from markdown --to html --highlight-style kate --self-contained "${cancel_message}" > ${cancel_message}.1.html || comments-error "${cancel_message}" $"Error running pandoc"
+	
+	fetch 'id['$id']' dev-comments | perl -Mopen=locale -MHTML::Entities -pe '$_ = decode_entities($_)' | sed '/^$/d' > ${cancel_message}.original
+	local original_is_empty=$(wc -l ${cancel_message}.original)
 
 	hpqc users me | (
 	IFS='|'
@@ -169,11 +172,25 @@ function generate-comment {
 	</font>
 </div>
 END
-	premailer ${cancel_message}.1.html | sed -n '/\<body\>/,$p' | sed '/body>/d;/html>/d' | sed 's/$/\r/') > ${cancel_message}.2.html
+		premailer ${cancel_message}.1.html | (
+			if [ $original_is_empty -eq 0 ]; then
+				cat -
+			else
+			   	sed -n '/\<body/,$p' | sed '/<body/d;/body>/d;/html>/d'
+			fi
+		)
+	) | sed 's/$/\r/'> ${cancel_message}.2.html
 
-	fetch 'id['$id']' dev-comments | perl -Mopen=locale -MHTML::Entities -pe '$_ = decode_entities($_)' > ${cancel_message}.original
 
-	( (cat "${cancel_message}.original" | sed "/<\/body>/d;/<\/html>/d"); cat "${cancel_message}.2.html"; echo -e "</body>\r\n</html>\r") | perl -Mopen=locale -MHTML::Entities -pe '$_ = encode_entities($_)'
+	(
+		if [ $original_is_empty -eq 0 ]; then
+			cat "${cancel_message}.2.html"
+		else
+			cat "${cancel_message}.original" | sed "/<\/body>/d;/<\/html>/d"
+			cat "${cancel_message}.2.html"
+			echo -e "</body>\r\n</html>\r"
+		fi
+	) | perl -Mopen=locale -MHTML::Entities -pe '$_ = encode_entities($_)'
 
 	rm "${cancel_message}"*
 }
