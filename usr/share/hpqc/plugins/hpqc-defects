@@ -248,28 +248,28 @@ function call {
 	case "$1" in
 		help)
 			shift
-			help 3 $@
+			help 3 "$@"
 			;;
 		cancel)
 			echo $"Do nothing"
 			;;
 		assign)
 			shift
-			assign $@
+			assign "$@"
 			;;
 		develop)
 			shift
-			develop $@
+			develop "$@"
 			;;
 		comment)
 			shift
-			comment $@
+			comment "$@"
 			;;
 		fetch)
 			shift
-			fetch $@ 
+			fetch "$@"
 			;;
 		*)
-			fetch $@
+			fetch "$@"
 	esac
 }
