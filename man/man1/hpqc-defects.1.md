@@ -10,7 +10,7 @@ hpqc-defects(1) -- Interacts with HPQC defects
 `hpqc-defects` command interacts with HPQC defects entity. It has the following
 facilities:
 
-  * `fetch` [<search>] [<view>]:
+  * `fetch` [<search>] [<view>]
 
     This is the default facility (if none is indicated). It download the defect
     entity XML filtered by <search> and, if indicated, parsed with a <view>.
