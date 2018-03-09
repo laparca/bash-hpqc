@@ -24,7 +24,7 @@ install:
 	cp -rv etc $(DESTDIR)
 	ronn --date=$$(date +%Y-%m-%d) --roff man/man1/*.ronn
 	mkdir -p $(DESTDIR)/usr/share/man/man1/
-	for i in man/man1/*1; do gzip < $$i > $(DESTDIR)/usr/share/man/man1/$$(basename $$i).gz || exit 1; done
+	for i in man/man1/*1; do gzip < $$i > $(DESTDIR)/usr/share/man/man1/$$(basename $$i).gz || exit 1; rm $i; done
 
 deb:
 	git archive --format tar.gz --prefix bash-hpqc-$(VERSION)/ HEAD > ../bash-hpqc_$(VERSION).orig.tar.gz
