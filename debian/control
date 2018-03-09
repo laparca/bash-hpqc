@@ -1,7 +1,7 @@
 Source: bash-hpqc
 Section: devel
 Priority: optional
-Build-depends: debhelper (>=9)
+Build-depends: debhelper (>=9), ruby-ronn
 Maintainer: Samuel R. Sevilla <samuel.rodriguez@diagroup.com>
 Standards-Version: 3.9.5
 Homepage: https://www.dia.es/
