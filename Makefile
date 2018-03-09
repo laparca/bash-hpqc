@@ -22,7 +22,7 @@ install:
 	mkdir -p $(DESTDIR)
 	cp -rv usr $(DESTDIR)
 	cp -rv etc $(DESTDIR)
-	ronn --date=$$(date +%Y-%m-%d) --roff man/man1/*.ronn
+	ronn --date=$$(date +%Y-%m-%d) --roff man/man1/*.md
 	mkdir -p $(DESTDIR)/usr/share/man/man1/
 	for i in man/man1/*1; do gzip < $$i > $(DESTDIR)/usr/share/man/man1/$$(basename $$i).gz || exit 1; rm $i; done
 
