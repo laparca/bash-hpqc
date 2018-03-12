@@ -13,14 +13,7 @@ function help {
 
 function call {
 	if [ "$1" == "help" ]; then
-		cat <<END
-Descarga un conjunto de defectos desde HPQC. Se puede asignar un criterio de
-busqueda de defectos en el formato de HPQC o un nombre de busqueda generado con
-'new-search'. Tambien se puede incluir un nombrede vista, creado con new-view,y
-que pertimira mostrar de forma tabulara solo un conjuto de columnas. El orden de
-estos nombres no es importante, pero si hay que tener en cuenta que una vista y
-una busqueda no pueden coincidir en nombre.
-END
+		man hpqc-requeriments
 		exit 0
 	fi
 

@@ -17,39 +17,7 @@ function help {
 			echo $"Actions over defects in HPQC (cancel, develop, download, etc.)"
 			;;
 		3)
-			case "$2" in
-				assign)
-					echo $"Assigns a user to a defect (by id). Call it this form:"
-					echo
-					echo $"   hpqc defect assign ID [user]"
-					echo
-					echo $"If user is ommited then the actual user is used."
-					;;
-				cancel)
-					echo $"Marks a defect as cancelled. Call it this way:"
-					echo
-					echo $"   hpqc defect cancel ID"
-					;;
-				comment)
-					echo $"Adds a comment to a defect. Call it this form:"
-					echo
-					echo $"   hpqc defect comment ID"
-					;;
-				develop)
-					echo $"Marks a defect as developed. Call it this way:"
-					echo
-					echo $"   hpqc defect develop ID"
-					;;
-				*)
-					echo $"Downloads one or more defects from HPQC. A search criteria can be added using HPQC query format or generated search (use new-search plugin for that). Also a view filter can be added (use new-view plugin)."
-#Descarga un conjunto de defectos desde HPQC. Se puede asignar un criterio de
-#busqueda de defectos en el formato de HPQC o un nombre de busqueda generado con
-#'new-search'. Tambien se puede incluir un nombrede vista, creado con new-view,y
-#que pertimira mostrar de forma tabulara solo un conjuto de columnas. El orden de
-#estos nombres no es importante, pero si hay que tener en cuenta que una vista y
-#una busqueda no pueden coincidir en nombre.
-					;;
-			esac
+			man hpqc-defetcs
 			;;
 	esac
 }

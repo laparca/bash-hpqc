@@ -21,13 +21,7 @@ function help {
 
 function call {
 	if [ "$1" == "help" ]; then
-		echo $"Locks an entity in HPQC to prevent it to be modified by other users. You can check the list of entities in ~/.hpqc/cache/entities.csv."
-		echo $"Example:"
-		echo
-		echo $"hpqc lock get defect 21560"
-		echo $"hpqc lock release defect 21560"
-		echo $"hpqc lock status defect 21560"
-		echo
+		man hpqc-lock
 		exit 0
 	fi
 

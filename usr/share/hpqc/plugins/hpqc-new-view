@@ -40,7 +40,7 @@ function help {
 
 function call {
 	if [ "$1" == "help" ]; then
-		help 2
+		man hpqc-new-view
 		exit 0
 	fi
 

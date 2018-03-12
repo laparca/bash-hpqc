@@ -11,9 +11,7 @@ function help {
 
 function call {
 	if [ "$1" == "help" ]; then
-		cat <<END
-Crea una cache de los metadatos que tiene actualmente HP Quality Center.
-END
+		man hpqc-build-cache
 		exit 0
 	fi
 

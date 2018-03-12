@@ -70,7 +70,7 @@ function help() {
 
 function call {
 	if [ "$1" == "help" ]; then
-		help 2
+		man hpqc-new-search
 		exit 1
 	fi
 

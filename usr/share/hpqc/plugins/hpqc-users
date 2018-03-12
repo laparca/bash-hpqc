@@ -13,10 +13,7 @@ function help {
 
 function call {
 	if [ "$1" == "help" ]; then
-		cat <<END
-Descarga la informacion sobre usuarios que hay en HPQC (si no se indica ninguno)
-o la informacion concreta del usuario indicado.
-END
+		man hpqc-users
 		exit 0
 	fi
 

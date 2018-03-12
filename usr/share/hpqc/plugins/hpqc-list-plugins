@@ -5,14 +5,14 @@ function help {
 		1)
 			;;
 		2)
-			echo "Muestra todos los plugins configurados."
+			echo $"Show the whole list of active tools."
 			;;
 	esac
 }
 
 function call {
 	if [ "$1" == "help" ]; then
-		help 2
+		man hpqc-list-plugins
 		exit 0
 	fi
 

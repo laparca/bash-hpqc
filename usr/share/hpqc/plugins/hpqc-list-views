@@ -5,14 +5,14 @@ function help {
 		1)
 			;;
 		2)
-			echo "Devuelve todas las vistas que hay en el sistema."
+			echo $"Returns all views installed."
 			;;
 	esac
 }
 
 function call {
 	if [ "$1" == "help" ]; then
-		help 2
+		man hpqc-list-views
 		exit 0
 	fi
 

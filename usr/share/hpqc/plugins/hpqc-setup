@@ -12,7 +12,7 @@ function help {
 function call {
 	local CONFIG_FILE
 	if [ "$1" == "help" ]; then
-		help 2
+		man hpqc-setup
 		exit 0
 	fi
 
