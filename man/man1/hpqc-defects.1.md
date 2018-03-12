@@ -32,17 +32,17 @@ facilities:
   * `assign` <id> [<user>]
 
     Assign a defect <id> to the user <user>. It there isn't an user then the
-    actual user is used.
+    actual user is used. It uses `hpqc-update(1)` to work.
 
   * `comment` <id>
 
     Adds a comment to the dev-comments entry of the defect identified by id <id>.
-    Comments are written using markdown syntax.
+    Comments are written using markdown syntax. It uses `hpqc-update(1)` to work.
 
   * `develop` <id>
 
     Change a defect status to developed. It's mandatory to write a comment
-    explaining the solution.
+    explaining the solution. It uses `hpqc-update(1)` to work.
 
     Like `comment`, the comment should be written using markdown syntax.
 
@@ -54,4 +54,4 @@ facilities:
 
 ## SEE ALSO
 
-hpqc-new-serch(1), hpqc-new-view(1)
+hpqc-new-serch(1), hpqc-new-view(1), hpqc-update(1)
