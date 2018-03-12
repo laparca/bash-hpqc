@@ -17,7 +17,7 @@ function help {
 			echo $"Actions over defects in HPQC (cancel, develop, download, etc.)"
 			;;
 		3)
-			man hpqc-defetcs
+			man hpqc-defects
 			;;
 	esac
 }
